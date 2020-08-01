@@ -6,5 +6,15 @@ TODO List
     * [X] Django REST Framework - initial setup
     * [ ] Handling requests for creating/updating data on the Customer API from the Service API
       * IF all fields are available on the POST request:
-        * IF payment_status value is "Completed":
-          * Update info on the Customer API.
+        * IF payment_status value IS "Completed":
+          * IF ___item_name___ in ___['free','basic','premium']___ :
+            * Update info on the Customer API.
+          * ELSE:
+            * Return error, notifying that the item name is not valid.
+        * ELSE IF ___payment_status___ IS NOT "Completed":
+          * On **CustomerAPI[payer_id]**: 
+            * Update **SUBSCRIPTION** field of to ***free***
+            * Update all elements of **ENABLED_FEATURES** to false
+          
+      * ELSE:
+        * Return error, notifying that the data body is not correct
