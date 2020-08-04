@@ -19,5 +19,8 @@ from edunext_paypal_service.router import router
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('payments/', include(router.urls))
+
+    # REST FRAMEWORK URLS
+    path('payments/', include(router.urls)),
+    path('api/', include('edunext_paypal_service.urls'))
 ]
