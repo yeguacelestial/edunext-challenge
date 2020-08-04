@@ -10,7 +10,7 @@ class Paypal(models.Model):
     protection_eligibility = models.CharField(max_length=50)
     address_status = models.CharField(max_length=50)
     payer_id = models.CharField(max_length=250)
-    payment_date = models.DateTimeField(auto_now=True)
+    payment_date = models.CharField(max_length=30)
     payment_status = models.CharField(max_length=30)
     notify_version = models.CharField(max_length=20)
     verify_sign = models.CharField(max_length=250)
