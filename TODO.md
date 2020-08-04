@@ -4,6 +4,7 @@ TODO List
 * [ ] 002_fun_coding_time
   * [ ] Service to interact between customers API and PayPal services
     * [X] Django REST Framework - initial setup
+    * [X] Creating view for manipulating and validating POST request of IPN Notification (JSON object) received on the database
     * [ ] Handling requests for creating/updating data on the Customer API from the Service API
       * IF all fields are available on the POST request:
         * IF payment_status value IS "Completed":
