@@ -22,4 +22,4 @@ class Paypal(models.Model):
     shipping = models.CharField(max_length=20)
 
     def __str__(self):
-        return self.ipn_notification
+        return self.payer_id
