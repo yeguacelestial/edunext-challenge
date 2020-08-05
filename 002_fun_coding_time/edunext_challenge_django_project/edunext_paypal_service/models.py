@@ -12,7 +12,7 @@ class Paypal(models.Model):
     payer_id = models.CharField(max_length=250)
     payment_date = models.CharField(max_length=30)
     payment_status = models.CharField(max_length=30)
-    notify_version = models.CharField(max_length=20)
+    notify_version = models.DecimalField(max_digits=5, decimal_places=3)
     verify_sign = models.CharField(max_length=250)
     receiver_id = models.CharField(max_length=100)
     txn_type = models.CharField(max_length=50)
