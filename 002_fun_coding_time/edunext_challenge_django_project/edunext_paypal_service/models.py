@@ -18,7 +18,7 @@ class Paypal(models.Model):
     txn_type = models.CharField(max_length=50)
     item_name = models.CharField(max_length=25)
     mc_currency = models.CharField(max_length=10)
-    payment_gross = models.DecimalField(max_digits=6, decimal_places=2)
+    payment_gross = models.DecimalField(max_digits=8, decimal_places=2)
     shipping = models.CharField(max_length=20)
 
     def __str__(self):
