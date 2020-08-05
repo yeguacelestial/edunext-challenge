@@ -21,6 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # REST FRAMEWORK URLS
-    path('payments/', include(router.urls)),
-    path('api/', include('edunext_paypal_service.urls'))
+    path('payments/', include('edunext_paypal_service.urls')),
 ]
