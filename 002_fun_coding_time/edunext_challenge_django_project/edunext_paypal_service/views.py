@@ -22,54 +22,78 @@ CUSTOMER_API_ENDPOINT = 'http://localhost:8010/api/v1/customerdata/'
 # Manipulate POST request on this API
 @api_view(['POST'])
 def ipnNotif_create(request):
-    # request.data object is a JSON object
-    serializer = PaypalSerializer(data=request.data)
+    # Verify that user exists on CustomerAPI
+    if customer_exists(request):
 
-    # IF all fields are available on the POST request:
-    if serializer.is_valid():
+        # request.data object is a JSON object
+        serializer = PaypalSerializer(data=request.data)
 
-        # IF payment_status IS Completed:
-        if request.data['payment_status'] == 'Completed':
+        # IF all fields are available on the POST request:
+        if serializer.is_valid():
 
-            # Current available items
-            available_items = [
-                'free',
-                'basic',
-                'premium'
-            ]
+            # IF payment_status IS Completed:
+            if request.data['payment_status'] == 'Completed':
 
-            # IF item_name IN available_items:
-            if request.data['item_name'] in available_items:
-                # Send the info to the Customer API
-                print('[+] VALIDATED ITEM NAME')
-                customerAPI_update(request, payment_is_completed=True)
+                # Current available items
+                available_items = [
+                    'free',
+                    'basic',
+                    'premium'
+                ]
 
-                # Save the IPN Notif Object in the DB
-                serializer.save()
-                return Response(serializer.data)
+                # IF item_name IN available_items:
+                if request.data['item_name'] in available_items:
+                    # Send the info to the Customer API
+                    print('[+] VALIDATED ITEM NAME')
+                    customerAPI_update(request, payment_is_completed=True)
 
-            # ELSE if item_name IS NOT IN available_items:
+                    # Save the IPN Notif Object in the DB
+                    serializer.save()
+                    return Response(serializer.data)
+
+                # ELSE if item_name IS NOT IN available_items:
+                else:
+                    json_detail = {
+                        'error': 'Item name is not valid.'
+                    }
+                    print("[-] ERROR => ITEM NAME IS NOT VALID")
+                    return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data=json_detail)
+
+            # ELSE IF payment_status IS NOT "Completed":
             else:
-                json_detail = {
-                    'error': 'Item name is not valid.'
+                customerAPI_update(request, payment_is_completed=False)
+                json_error = {
+                    'error': 'Payment status is not completed. All features are disabled.'
                 }
-                print("[-] ERROR => ITEM NAME IS NOT VALID")
-                return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data=json_detail)
+                return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data=json_error)
 
-        # ELSE IF payment_status IS NOT "Completed":
+        # If the request is not valid, return a HTTP error
         else:
-            customerAPI_update(request, payment_is_completed=False)
             json_error = {
-                'error': 'Payment status is not completed. All features are disabled.'
+                'error': 'Invalid request.'
             }
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data=json_error)
-
-    # If the request is not valid, return a HTTP error
+            return Response(data=json_error, status=status.HTTP_406_NOT_ACCEPTABLE)
+    
+    # Else, if user does not exists on the CustomerAPI
     else:
         json_error = {
-            'error': 'Invalid request.'
+            'error': 'The user (payer_id) does not exist on the CustomerAPI.'
         }
         return Response(data=json_error, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+
+# Retrieve existing customers, just in case the user sends a weird payer_id argument
+def customer_exists(request):
+    # Retrieve ID users from database
+    customers_data = requests.get(CUSTOMER_API_ENDPOINT).json()['results']
+    customers_ids = [customer['id'] for customer in customers_data]
+    
+    # Verify that payer_id exists on CustomerAPI
+    if request.data['payer_id'] in customers_ids:
+        return True
+    # Else, if user does not exists
+    else:
+        return False
 
 
 # Update data on Customer API
