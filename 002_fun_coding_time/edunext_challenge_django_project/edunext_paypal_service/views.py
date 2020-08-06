@@ -19,16 +19,6 @@ CUSTOMER_API_ENDPOINT = 'http://localhost:8010/api/v1/customerdata/'
 
 # # VIEWS # #
 
-# Manipulate GET request
-@api_view(['GET'])
-def ipnNotif_list(request):
-    ipnNotifications = Paypal.objects.all()
-
-    # 'many' means we want a list of all notifications
-    serializer = PaypalSerializer(ipnNotifications, many=True)
-    return Response(serializer.data)
-
-
 # Manipulate POST request on this API
 @api_view(['POST'])
 def ipnNotif_create(request):
