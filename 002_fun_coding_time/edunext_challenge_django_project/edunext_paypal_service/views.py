@@ -67,6 +67,7 @@ def ipnNotif_create(request):
         # ELSE IF payment_status IS NOT "Completed":
         else:
             customerAPI_update(request, payment_is_completed=False)
+            return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data=request.data)
 
     # If the request is not valid, return a HTTP error
     else:
@@ -78,32 +79,36 @@ def ipnNotif_create(request):
 # TODO
 # Update data on Customer API
 def customerAPI_update(request, payment_is_completed:bool):
+    item_name = request.data['item_name']
+    payer_id = request.data['payer_id']
+    payer_endpoint_url = CUSTOMER_API_ENDPOINT + payer_id + '/'
+
+    # Get json object from Customer request
+    customer_json_object = requests.get(payer_endpoint_url).json()
+
     # IF payment_status IS Completed:
-    if payment_is_completed == True:
-
+    if payment_is_completed:
         # Update info on the Customer API
-        item_name = request.data['item_name']
-        payer_id = request.data['payer_id']
-        payer_endpoint_url = CUSTOMER_API_ENDPOINT + payer_id + '/'
-
         print(f"[+] REQUEST FROM PAYER {payer_id} RECEIVED, UPDATING DATA ON CUSTOMER API...")
 
-        # Get json object from Customer request
-        customer_json_object = requests.get(payer_endpoint_url).json()
-
         # Update data of Customer
-        customer_json_object['data']['SUBSCRIPTION'] = 'basic'
+        customer_json_object['data']['SUBSCRIPTION'] = item_name
 
-        # Send the modified JSON object
+        # Send the modified JSON object to the Customer API
         put_customer_data = requests.put(payer_endpoint_url, json=customer_json_object)
         print(put_customer_data)
+
+        return Response(data=customer_json_object, status=status.HTTP_200_OK)
         
     # ELSE IF payment_status IS DIFFERENT THAN completed
     else:
         # On CustomerAPI[payer_id]:
             # Update SUBSCRIPTION field to free
-            # Update SUBSCRIPTION field to free
-            # Update all elements of ENABLED_FEATURES to False
-        pass
+        customer_json_object['data']['SUBSCRIPTION'] = 'free'
 
-    return
+            # Update all elements of ENABLED_FEATURES to False
+        enabled_features_object = customer_json_object['data']['ENABLED_FEATURES']
+        enabled_features_object = {feature:False for feature in enabled_features_object}
+
+        put_customer_data = requests.put(payer_endpoint_url, json=customer_json_object)
+        return Response(data=customer_json_object, status=status.HTTP_200_OK)
