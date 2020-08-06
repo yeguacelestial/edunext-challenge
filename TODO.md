@@ -1,16 +1,16 @@
 TODO List
 ========================
 * [X] 001_challenge_stack
-* [ ] 002_fun_coding_time
-  * [ ] Service to interact between customers API and PayPal services
+* [X] 002_fun_coding_time
+  * [X] Service to interact between customers API and PayPal services
     * [X] Django REST Framework - initial setup
     * [X] Creating view for manipulating and validating POST request of IPN Notification (JSON object) received on the database
     * [X] Handling requests for creating/updating data on the Customer API from the Service API
-    * [ ] Add or update: DOWNGRADE_DATE and UPGRADE_DATE to the JSON objects -- Either ADD or UPDATE can be handled with HTTP PUT requests.
+    * [X] Add or update: DOWNGRADE_DATE and UPGRADE_DATE to the JSON objects -- Either ADD or UPDATE actions can be handled with HTTP PUT requests.
   <br/>
   <br/>
   <br/>
-  
+
 Pseudocode
 ========================
   * IF all fields are available on the POST request:
