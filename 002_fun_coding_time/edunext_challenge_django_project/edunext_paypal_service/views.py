@@ -81,7 +81,7 @@ def ipnNotif_create(request):
         }
         return Response(data=json_error, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-# TODO
+
 # Update data on Customer API
 def customerAPI_update(request, payment_is_completed:bool):
     # Dict with items values for ordering them
@@ -101,8 +101,8 @@ def customerAPI_update(request, payment_is_completed:bool):
     customer_json_object = requests.get(payer_endpoint_url).json()
 
     # Get previous item_name from customer_json_object
-    previous_item = customer_json_object['data']['SUBSCRIPTION']
-    previous_item_value = items[previous_item]
+    previous_item_name = customer_json_object['data']['SUBSCRIPTION']
+    previous_item_value = items[previous_item_name]
 
     # IF payment_status IS Completed:
     if payment_is_completed:
@@ -118,11 +118,24 @@ def customerAPI_update(request, payment_is_completed:bool):
 
         # If user UPGRADE his current plan
         if previous_item_value < new_item_value:
+            # Try dumping DOWNGRADE_DATE from the Customer data
+            if 'DOWNGRADE_DATE' in customer_json_object['data']: customer_json_object['data'].pop('DOWNGRADE_DATE')
+
             # Add UPGRADE_DATE to Customer json object
             customer_json_object['data']['UPGRADE_DATE'] = str(datetime.datetime.now())
 
+            # Update LAST_PAYMENT_DATE from Customer json object
+            customer_json_object['data']['LAST_PAYMENT_DATE'] = str(datetime.datetime.now())
+
         # ELSE, IF user DOWNGRADES his current plan
         elif previous_item_value > new_item_value: 
+            # Try dumping UPGRADE_DATE from the Customer data
+            if 'UPGRADE_DATE' in customer_json_object['data']: customer_json_object['data'].pop('UPGRADE_DATE')
+
+            # Update LAST_PAYMENT_DATE only IF user DOWNGRADES from premium to basic
+            if new_item_name == 'basic' and previous_item_name == 'premium':
+                customer_json_object['data']['LAST_PAYMENT_DATE'] = str(datetime.datetime.now())
+
             # Add DOWNGRADE_DATE to Customer json object
             customer_json_object['data']['DOWNGRADE_DATE'] = str(datetime.datetime.now())
 
@@ -136,7 +149,11 @@ def customerAPI_update(request, payment_is_completed:bool):
     else:
         # Update SUBSCRIPTION field to free
         customer_json_object['data']['SUBSCRIPTION'] = 'free'
-        
+        customer_json_object['data']['DOWNGRADE_DATE'] = str(datetime.datetime.now())
+
+        # If there is an UPGRADE_DATE, remove it
+        if 'UPGRADE_DATE' in customer_json_object['data']: customer_json_object['data'].pop('UPGRADE_DATE')
+
         # Update all elements of ENABLED_FEATURES to False
         enabled_features_object = customer_json_object['data']['ENABLED_FEATURES']
         customer_json_object['data']['ENABLED_FEATURES'] = {feature:False for feature in enabled_features_object}
@@ -145,6 +162,7 @@ def customerAPI_update(request, payment_is_completed:bool):
         put_customer_data = requests.put(payer_endpoint_url, json=customer_json_object)
         print(put_customer_data)
 
+        # Return JSON object, explaining the exception
         json_error = {
             'error': 'Payment status is not completed. All features are disabled.'
         }
