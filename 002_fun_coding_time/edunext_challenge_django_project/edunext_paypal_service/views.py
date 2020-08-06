@@ -102,13 +102,15 @@ def customerAPI_update(request, payment_is_completed:bool):
         
     # ELSE IF payment_status IS DIFFERENT THAN completed
     else:
-        # On CustomerAPI[payer_id]:
-            # Update SUBSCRIPTION field to free
+        # Update SUBSCRIPTION field to free
         customer_json_object['data']['SUBSCRIPTION'] = 'free'
 
-            # Update all elements of ENABLED_FEATURES to False
+        # Update all elements of ENABLED_FEATURES to False
         enabled_features_object = customer_json_object['data']['ENABLED_FEATURES']
-        enabled_features_object = {feature:False for feature in enabled_features_object}
+        customer_json_object['data']['ENABLED_FEATURES'] = {feature:False for feature in enabled_features_object}
 
+        # Send modified JSON object to the Customer API
         put_customer_data = requests.put(payer_endpoint_url, json=customer_json_object)
+        print(put_customer_data)
+        
         return Response(data=customer_json_object, status=status.HTTP_200_OK)
